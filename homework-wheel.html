@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作业转盘</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+        }
+        .container { text-align: center; }
+        .title {
+            color: #c9a96e;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            letter-spacing: 3px;
+        }
+        .wheel-wrapper {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            margin: 0 auto;
+        }
+        canvas {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .pointer {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 36px solid #c9a96e;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -36px;
+            left: -9px;
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 18px solid #e8d4b8;
+        }
+        .center-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #e8d4b8, #c9a96e);
+            border: 3px solid #8b5e3c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #5a4a3a;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            z-index: 20;
+        }
+        .center-btn:hover { transform: translate(-50%, -50%) scale(1.05); }
+        .center-btn:active { transform: translate(-50%, -50%) scale(0.95); }
+        .center-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">现在我要干什么？</div>
+        <div class="wheel-wrapper">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="320" height="320"></canvas>
+            <button class="center-btn" id="spinBtn" onclick="spin()">转</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const cx = 160, cy = 160, r = 150;
+
+        const segments = [
+            { name: '写语文作业', angle: 75, color: '#c4b8a8' },
+            { name: '写数学作业', angle: 75, color: '#9db4c0' },
+            { name: '写英语作业', angle: 75, color: '#b8a8c4' },
+            { name: '打蛋仔', angle: 30, color: '#d4c496' },
+            { name: '看书', angle: 75, color: '#a8b5a0' },
+            { name: '看电视', angle: 30, color: '#b8b8c4' }
+        ];
+
+        let startAngle = -90;
+        segments.forEach(seg => {
+            seg.startAngle = startAngle * Math.PI / 180;
+            seg.endAngle = (startAngle + seg.angle) * Math.PI / 180;
+            startAngle += seg.angle;
+        });
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, 320, 320);
+            ctx.strokeStyle = '#8b5e3c';
+            ctx.lineWidth = 14;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#c9a96e';
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            segments.forEach(seg => {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, seg.startAngle, seg.endAngle);
+                ctx.closePath();
+                ctx.fillStyle = seg.color;
+                ctx.fill();
+                ctx.strokeStyle = '#8b5e3c';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            ctx.font = 'bold 16px system-ui';
+            ctx.fillStyle = '#5a5a5a';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            segments.forEach(seg => {
+                const midAngle = (seg.startAngle + seg.endAngle) / 2;
+                const textR = r * 0.65;
+                const tx = cx + Math.cos(midAngle) * textR;
+                const ty = cy + Math.sin(midAngle) * textR;
+                ctx.save();
+                ctx.translate(tx, ty);
+                ctx.rotate(midAngle + Math.PI / 2);
+                ctx.fillText(seg.name, 0, 0);
+                ctx.restore();
+            });
+        }
+
+        let currentRotation = 0;
+        let spinning = false;
+
+        function spin() {
+            if (spinning) return;
+            spinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const randomAngle = Math.floor(Math.random() * 360) + 1440;
+            currentRotation += randomAngle;
+
+            const targetRotation = currentRotation * Math.PI / 180;
+            const startTime = Date.now();
+            const duration = 2000;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const currentAngle = currentRotation * eased;
+
+                ctx.clearRect(0, 0, 320, 320);
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(currentAngle);
+                ctx.translate(-cx, -cy);
+
+                segments.forEach(seg => {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, r, seg.startAngle, seg.endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = seg.color;
+                    ctx.fill();
+                    ctx.strokeStyle = '#8b5e3c';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+
+                ctx.font = 'bold 16px system-ui';
+                ctx.fillStyle = '#5a5a5a';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                segments.forEach(seg => {
+                    const midAngle = (seg.startAngle + seg.endAngle) / 2;
+                    const textR = r * 0.65;
+                    const tx = cx + Math.cos(midAngle) * textR;
+                    const ty = cy + Math.sin(midAngle) * textR;
+                    ctx.save();
+                    ctx.translate(tx, ty);
+                    ctx.rotate(midAngle + Math.PI / 2);
+                    ctx.fillText(seg.name, 0, 0);
+                    ctx.restore();
+                });
+
+                ctx.restore();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    spinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                }
+            }
+            animate();
+        }
+
+        drawWheel();
+    </script>
+</body>
+</html>

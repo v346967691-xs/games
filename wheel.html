@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>转盘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .title {
+            color: #c9a96e;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            margin: 0 auto;
+        }
+
+        .wheel {
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            box-shadow:
+                0 0 0 8px #c9a96e,
+                0 0 0 14px #8b5e3c,
+                0 0 40px rgba(0,0,0,0.5);
+            background: conic-gradient(
+                from -22.5deg,
+                #b8a89a 0deg 45deg,
+                #9db4c0 45deg 90deg,
+                #c4a4b8 90deg 135deg,
+                #d4b896 135deg 180deg,
+                #a8b5a0 180deg 225deg,
+                #d4c49a 225deg 270deg,
+                #a8b8c4 270deg 315deg,
+                #c4b8b8 315deg 360deg
+            );
+        }
+
+        .wheel-segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-segment .text {
+            position: absolute;
+            font-size: 18px;
+            font-weight: bold;
+            color: #5a5a5a;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.7);
+            white-space: nowrap;
+            letter-spacing: 6px;
+            padding-left: 6px;
+        }
+
+        .wheel-segment:nth-child(1) .text { transform: rotate(0deg) translate(0, -85px) rotate(0deg); }
+        .wheel-segment:nth-child(2) .text { transform: rotate(45deg) translate(0, -85px) rotate(-45deg); }
+        .wheel-segment:nth-child(3) .text { transform: rotate(90deg) translate(0, -85px) rotate(-90deg); }
+        .wheel-segment:nth-child(4) .text { transform: rotate(135deg) translate(0, -85px) rotate(-135deg); }
+        .wheel-segment:nth-child(5) .text { transform: rotate(180deg) translate(0, -85px) rotate(-180deg); }
+        .wheel-segment:nth-child(6) .text { transform: rotate(225deg) translate(0, -85px) rotate(-225deg); }
+        .wheel-segment:nth-child(7) .text { transform: rotate(270deg) translate(0, -85px) rotate(-270deg); }
+        .wheel-segment:nth-child(8) .text { transform: rotate(315deg) translate(0, -85px) rotate(-315deg); }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 36px solid #c9a96e;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -36px;
+            left: -9px;
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 18px solid #e8d4b8;
+        }
+
+        .center-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #e8d4b8, #c9a96e);
+            border: 3px solid #8b5e3c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #5a4a3a;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            z-index: 20;
+        }
+
+        .center-btn:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.5);
+        }
+
+        .center-btn:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        .center-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translate(-50%, -50%);
+        }
+
+        </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">现在我要干什么？</div>
+        <div class="wheel-wrapper">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel">
+                <div class="wheel-segment"><span class="text">打剑3</span></div>
+                <div class="wheel-segment"><span class="text">打王者</span></div>
+                <div class="wheel-segment"><span class="text">睡觉</span></div>
+                <div class="wheel-segment"><span class="text">看剧</span></div>
+                <div class="wheel-segment"><span class="text">看书</span></div>
+                <div class="wheel-segment"><span class="text">点奶茶</span></div>
+                <div class="wheel-segment"><span class="text">点烧烤</span></div>
+                <div class="wheel-segment"><span class="text">上班</span></div>
+            </div>
+            <button class="center-btn" id="spinBtn" onclick="spin()">转</button>
+        </div>
+    </div>
+
+    <script>
+        const segments = ['打剑3', '打王者', '睡觉', '看剧', '看书', '点奶茶', '点烧烤', '上班'];
+        const segmentAngle = 360 / segments.length;
+        let currentRotation = 0;
+        let spinning = false;
+
+        function spin() {
+            if (spinning) return;
+            spinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const randomAngle = Math.floor(Math.random() * 360) + 1440;
+            currentRotation += randomAngle;
+
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                spinning = false;
+                document.getElementById('spinBtn').disabled = false;
+
+                const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+                const pointerAngle = (360 - normalizedRotation + 90 + 360) % 360;
+                const segmentIndex = Math.floor(pointerAngle / segmentAngle);
+                const result = segments[segmentIndex % segments.length];
+
+                document.getElementById('result').textContent = `▶ ${result}`;
+            }, 4100);
+        }
+    </script>
+</body>
+</html>

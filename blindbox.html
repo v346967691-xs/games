@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盲盒</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+            overflow: hidden;
+        }
+        .container { text-align: center; }
+
+        .box-3d {
+            width: 160px;
+            height: 160px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-15deg) rotateY(-20deg);
+            margin: 60px auto;
+        }
+
+        .box-face {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border: 3px solid #a33025;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.2);
+        }
+
+        .box-face::before {
+            content: '?';
+            font-size: 50px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .front  { transform: translateZ(80px); }
+        .back   { transform: rotateY(180deg) translateZ(80px); }
+        .left   { transform: rotateY(-90deg) translateZ(80px); }
+        .right  { transform: rotateY(90deg) translateZ(80px); }
+        .top    { transform: rotateX(90deg) translateZ(80px); }
+        .bottom { transform: rotateX(-90deg) translateZ(80px); background: #a33025; }
+
+        .box-3d.open {
+            animation: boxOpen 0.8s ease-out forwards;
+        }
+
+        @keyframes boxOpen {
+            0% { transform: rotateX(-15deg) rotateY(-20deg) scale(1); }
+            50% { transform: rotateX(30deg) rotateY(0deg) scale(1.1); }
+            100% { transform: rotateX(0deg) rotateY(0deg) scale(0.8); opacity: 0; }
+        }
+
+        .toy {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: toyReveal 0.6s ease-out forwards;
+        }
+
+        .toy.show { display: flex; }
+
+        @keyframes toyReveal {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .toy-icon {
+            font-size: 80px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .toy-name {
+            color: #c9a96e;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .toy-rarity {
+            color: #888;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .btn-open {
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn-open:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+
+        .btn-open:active { transform: scale(0.95); }
+        .btn-open:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-reset {
+            padding: 10px 30px;
+            font-size: 14px;
+            background: #34495e;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { background: #4a6a8e; }
+
+        .collection {
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .collection-icons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 400px;
+            margin: 15px auto 0;
+        }
+
+        .collection-icons span {
+            font-size: 24px;
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+
+        .collection-icons span.collected {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box-3d" id="box3d">
+            <div class="box-face front"></div>
+            <div class="box-face back"></div>
+            <div class="box-face left"></div>
+            <div class="box-face right"></div>
+            <div class="box-face top"></div>
+            <div class="box-face bottom"></div>
+        </div>
+
+        <div class="toy" id="toy">
+            <div class="toy-icon" id="toyIcon"></div>
+            <div class="toy-name" id="toyName"></div>
+            <div class="toy-rarity" id="toyRarity"></div>
+        </div>
+
+        <button class="btn-open" id="btnOpen" onclick="openBox()">拆开盲盒</button>
+        <button class="btn-reset" onclick="reset()">重置记录</button>
+
+        <div class="collection">
+            <div>已收集: <span id="count">0</span>/20</div>
+            <div class="collection-icons" id="collection"></div>
+        </div>
+    </div>
+
+    <script>
+        const toys = [
+            { name: '马里奥', icon: '🍄', rarity: '★ 普通' },
+            { name: '路易吉', icon: '🍄', rarity: '★ 普通' },
+            { name: '桃花公主', icon: '👸', rarity: '★★ 稀有' },
+            { name: '耀西', icon: '🦎', rarity: '★ 普通' },
+            { name: '林克', icon: '🗡️', rarity: '★★★ 史诗' },
+            { name: '塞尔达', icon: '💎', rarity: '★★★ 史诗' },
+            { name: '皮卡丘', icon: '⚡', rarity: '★★★ 史诗' },
+            { name: '伊布', icon: '💖', rarity: '★★ 稀有' },
+            { name: '喷火龙', icon: '🔥', rarity: '★★★ 史诗' },
+            { name: '索尼克', icon: '💨', rarity: '★★★ 史诗' },
+            { name: '卡比', icon: '🎵', rarity: '★★ 稀有' },
+            { name: '星之卡比', icon: '🎀', rarity: '★★ 稀有' },
+            { name: '洛克人', icon: '🤖', rarity: '★★★ 史诗' },
+            { name: '吃豆人', icon: '👻', rarity: '★ 普通' },
+            { name: '鬼泣但丁', icon: '⚔️', rarity: '★★★ 史诗' },
+            { name: '猎天使姐', icon: '👿', rarity: '★★★ 史诗' },
+            { name: 'Splatoon乌贼', icon: '🦑', rarity: '★★ 稀有' },
+            { name: '动物森友会狸猫', icon: '🦝', rarity: '★★ 稀有' },
+            { name: '艾尔登法环褪色者', icon: '⚜️', rarity: '★★★★ 传说' },
+            { name: '勇者斗恶龙史莱姆', icon: '💧', rarity: '★ 普通' }
+        ];
+
+        let collected = JSON.parse(localStorage.getItem('blindBoxCollected') || '[]');
+        let opened = false;
+
+        function renderCollection() {
+            document.getElementById('count').textContent = collected.length;
+            const container = document.getElementById('collection');
+            container.innerHTML = toys.map((t, i) =>
+                `<span class="${collected.includes(i) ? 'collected' : ''}">${t.icon}</span>`
+            ).join('');
+        }
+
+        function openBox() {
+            if (opened) return;
+            opened = true;
+            document.getElementById('btnOpen').disabled = true;
+
+            const box = document.getElementById('box3d');
+            box.classList.add('open');
+
+            setTimeout(() => {
+                box.style.display = 'none';
+                const toy = document.getElementById('toy');
+                const idx = Math.floor(Math.random() * toys.length);
+
+                document.getElementById('toyIcon').textContent = toys[idx].icon;
+                document.getElementById('toyName').textContent = toys[idx].name;
+                document.getElementById('toyRarity').textContent = toys[idx].rarity;
+
+                if (!collected.includes(idx)) {
+                    collected.push(idx);
+                    localStorage.setItem('blindBoxCollected', JSON.stringify(collected));
+                }
+
+                toy.classList.add('show');
+                renderCollection();
+
+                document.getElementById('btnOpen').disabled = false;
+                document.getElementById('btnOpen').textContent = '再开一个';
+                opened = false;
+            }, 800);
+        }
+
+        function reset() {
+            collected = [];
+            localStorage.removeItem('blindBoxCollected');
+            renderCollection();
+        }
+
+        renderCollection();
+    </script>
+</body>
+</html>
