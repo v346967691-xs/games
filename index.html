@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏合集</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+        }
+        .container { text-align: center; }
+        .title {
+            color: #c9a96e;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 60px;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            letter-spacing: 6px;
+        }
+        .games {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .game-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s;
+            min-width: 360px;
+        }
+        .game-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .game-icon {
+            font-size: 40px;
+        }
+        .game-info {
+            text-align: left;
+        }
+        .game-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .game-desc {
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">游戏合集</div>
+        <div class="games">
+            <a href="blackjack.html" class="game-card">
+                <div class="game-icon">🃏</div>
+                <div class="game-info">
+                    <div class="game-name">21点</div>
+                    <div class="game-desc">经典扑克牌游戏</div>
+                </div>
+            </a>
+            <a href="wheel.html" class="game-card">
+                <div class="game-icon">🎡</div>
+                <div class="game-info">
+                    <div class="game-name">转盘</div>
+                    <div class="game-desc">命运转盘决定干什么</div>
+                </div>
+            </a>
+            <a href="homework-wheel.html" class="game-card">
+                <div class="game-icon">📚</div>
+                <div class="game-info">
+                    <div class="game-name">作业转盘</div>
+                    <div class="game-desc">决定先写哪科作业</div>
+                </div>
+            </a>
+            <a href="blindbox.html" class="game-card">
+                <div class="game-icon">🎁</div>
+                <div class="game-info">
+                    <div class="game-name">盲盒</div>
+                    <div class="game-desc">随机抽取游戏动漫角色</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
