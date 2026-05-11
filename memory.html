@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆翻牌</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+        }
+        .container { text-align: center; }
+        .title {
+            color: #c9a96e;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .info {
+            color: #888;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .info span { color: #c9a96e; font-weight: bold; }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 90px);
+            gap: 12px;
+            justify-content: center;
+        }
+        .card {
+            width: 90px;
+            height: 120px;
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 3px solid transparent;
+        }
+        .card:hover { transform: scale(1.05); }
+        .card.flipped {
+            background: linear-gradient(145deg, #c9a96e, #a67c4a);
+            border-color: #8b5e3c;
+        }
+        .card.matched {
+            background: linear-gradient(145deg, #27ae60, #1e8449);
+            border-color: #196f3d;
+            cursor: default;
+        }
+        .card .icon { display: none; }
+        .card.flipped .icon,
+        .card.matched .icon { display: block; }
+        .card .back { display: block; }
+        .card.flipped .back,
+        .card.matched .back { display: none; }
+
+        .btn-reset {
+            margin-top: 30px;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #34495e;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-reset:hover { background: #4a6a8e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">记忆翻牌</div>
+        <div class="info">用时：<span id="time">0</span>秒　　步数：<span id="steps">0</span></div>
+        <div class="board" id="board"></div>
+        <button class="btn-reset" onclick="init()">重新开始</button>
+    </div>
+
+    <script>
+        const icons = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍒', '🥝', '🍑'];
+
+        let cards = [];
+        let flipped = [];
+        let matched = 0;
+        let steps = 0;
+        let timer = 0;
+        let interval = null;
+        let locked = false;
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function init() {
+            clearInterval(interval);
+            matched = 0;
+            steps = 0;
+            timer = 0;
+            flipped = [];
+            locked = false;
+            document.getElementById('steps').textContent = '0';
+            document.getElementById('time').textContent = '0';
+
+            const doubled = [...icons, ...icons];
+            cards = shuffle(doubled);
+
+            const board = document.getElementById('board');
+            board.innerHTML = cards.map((icon, i) => `
+                <div class="card" data-index="${i}">
+                    <span class="icon">${icon}</span>
+                    <span class="back">❓</span>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', () => flip(card));
+            });
+
+            interval = setInterval(() => {
+                timer++;
+                document.getElementById('time').textContent = timer;
+            }, 1000);
+        }
+
+        function flip(card) {
+            if (locked) return;
+            if (card.classList.contains('flipped')) return;
+            if (card.classList.contains('matched')) return;
+
+            card.classList.add('flipped');
+            flipped.push(card);
+
+            if (flipped.length === 2) {
+                steps++;
+                document.getElementById('steps').textContent = steps;
+                locked = true;
+
+                const [c1, c2] = flipped;
+                const icon1 = cards[c1.dataset.index];
+                const icon2 = cards[c2.dataset.index];
+
+                if (icon1 === icon2) {
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
+                    matched++;
+                    flipped = [];
+                    locked = false;
+
+                    if (matched === 8) {
+                        clearInterval(interval);
+                        setTimeout(() => alert(`🎉 完成！用时 ${timer} 秒，步数 ${steps}`), 300);
+                    }
+                } else {
+                    setTimeout(() => {
+                        c1.classList.remove('flipped');
+                        c2.classList.remove('flipped');
+                        flipped = [];
+                        locked = false;
+                    }, 800);
+                }
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
