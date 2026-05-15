@@ -156,6 +156,33 @@
         let currentRotation = 0;
         let spinning = false;
 
+        function getSelectedSegmentIndex() {
+            const wheelRect = document.getElementById('wheel').getBoundingClientRect();
+            const centerX = wheelRect.left + wheelRect.width / 2;
+            const centerY = wheelRect.top + wheelRect.height / 2;
+            const targetAngle = -Math.PI / 2;
+            let bestIndex = 0;
+            let bestDelta = Infinity;
+
+            document.querySelectorAll('.wheel-segment .text').forEach((text, index) => {
+                const rect = text.getBoundingClientRect();
+                const textX = rect.left + rect.width / 2;
+                const textY = rect.top + rect.height / 2;
+                const angle = Math.atan2(textY - centerY, textX - centerX);
+                const delta = Math.abs(Math.atan2(
+                    Math.sin(angle - targetAngle),
+                    Math.cos(angle - targetAngle)
+                ));
+
+                if (delta < bestDelta) {
+                    bestDelta = delta;
+                    bestIndex = index;
+                }
+            });
+
+            return bestIndex;
+        }
+
         function spin() {
             if (spinning) return;
             spinning = true;
@@ -169,11 +196,7 @@
             setTimeout(() => {
                 spinning = false;
                 document.getElementById('spinBtn').disabled = false;
-
-                const normalizedRotation = ((currentRotation % 360) + 360) % 360;
-                const pointerAngle = (360 - normalizedRotation + segmentAngle / 2) % 360;
-                const segmentIndex = Math.floor(pointerAngle / segmentAngle);
-                document.getElementById('result').textContent = `▶ ${segments[segmentIndex]}`;
+                document.getElementById('result').textContent = `▶ ${segments[getSelectedSegmentIndex()]}`;
             }, 4100);
         }
     </script>
