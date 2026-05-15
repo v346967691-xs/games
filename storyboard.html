@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>剧情分镜提示词生成器</title>
+    <title>剧情分镜 GPT 指令生成器</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -13,9 +13,7 @@
             color: #22312f;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
-        button, textarea, select {
-            font: inherit;
-        }
+        button, textarea, select { font: inherit; }
         button {
             border: 0;
             border-radius: 6px;
@@ -57,9 +55,7 @@
             background: #fffaf0;
             border-right: 1px solid #ded5c7;
         }
-        .output-panel {
-            padding: 24px;
-        }
+        .output-panel { padding: 24px; }
         h1 {
             margin: 0;
             font-size: 25px;
@@ -69,10 +65,9 @@
             margin: 6px 0 22px;
             color: #66716e;
             font-size: 14px;
+            line-height: 1.45;
         }
-        .field {
-            margin-bottom: 16px;
-        }
+        .field { margin-bottom: 16px; }
         .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -127,34 +122,26 @@
             font-weight: 800;
         }
         @media (max-width: 860px) {
-            .app {
-                display: block;
-            }
+            .app { display: block; }
             .input-panel {
                 border-right: 0;
                 border-bottom: 1px solid #ded5c7;
             }
-            .grid {
-                grid-template-columns: 1fr;
-            }
+            .grid { grid-template-columns: 1fr; }
             .topbar {
                 align-items: stretch;
                 flex-direction: column;
             }
-            .actions button {
-                flex: 1;
-            }
-            .output {
-                min-height: 520px;
-            }
+            .actions button { flex: 1; }
+            .output { min-height: 520px; }
         }
     </style>
 </head>
 <body>
     <div class="app">
         <section class="input-panel">
-            <h1>剧情分镜提示词生成器</h1>
-            <div class="subtitle">输入剧情概要，选择视频参数，生成可复制到 GPT 里继续给 image-2 出图的分镜脚本。</div>
+            <h1>剧情分镜 GPT 指令生成器</h1>
+            <div class="subtitle">这个页面不在本地伪造 AI 内容，而是把你的输入整理成一段完整指令。复制右侧内容到 GPT，GPT 会按你的剧情生成真正的分镜脚本和 image-2 出图提示词。</div>
 
             <div class="field">
                 <label for="summary">剧情概要</label>
@@ -192,7 +179,7 @@
             </div>
 
             <div class="actions">
-                <button class="btn-primary" id="generateBtn">生成分镜提示词</button>
+                <button class="btn-primary" id="generateBtn">生成 GPT 创作指令</button>
                 <button class="btn-soft" id="sampleBtn">填入示例</button>
                 <button class="btn-dark" id="clearBtn">清空</button>
             </div>
@@ -202,8 +189,8 @@
         <section class="output-panel">
             <div class="topbar">
                 <div>
-                    <h1>输出脚本</h1>
-                    <div class="subtitle">包含人物设定、分段剧情、镜头语言、台词、音效、字幕和 image-2 出图提示词。</div>
+                    <h1>GPT 创作指令</h1>
+                    <div class="subtitle">复制到 GPT 后，让 GPT 按你的输入生成完整分镜、台词、音效、字幕和 image-2 出图提示词。</div>
                 </div>
                 <div class="actions">
                     <button class="btn-primary" id="copyBtn">复制</button>
@@ -243,31 +230,29 @@
 
         function getShotPlan(count, duration) {
             const base = Math.floor(duration / count);
-            let rest = duration % count;
+            const extra = duration % count;
+            let start = 0;
             return Array.from({ length: count }, (_, index) => {
-                const length = base + (rest > 0 ? 1 : 0);
-                rest--;
-                const start = index === 0 ? 0 : Array.from({ length: index }).reduce((sum, __, i) => {
-                    const previousBase = Math.floor(duration / count);
-                    return sum + previousBase + (i < duration % count ? 1 : 0);
-                }, 0);
-                return { index: index + 1, start, end: start + length, length };
+                const length = base + (index < extra ? 1 : 0);
+                const shot = { index: index + 1, start, end: start + length };
+                start += length;
+                return shot;
             });
         }
 
-        function buildShotDescription(index, count) {
-            const presets = [
-                ['建立场景', '用环境、天气、空间关系交代故事发生地，让观众一眼知道人物处境。', '远景或全景，稳定构图，主体进入画面。'],
-                ['人物登场', '突出主角外貌、状态、标志物和当下情绪。', '中景到近景，轻微推进，视线落在人物表情。'],
-                ['冲突出现', '呈现让剧情发生变化的动作、信息或对手。', '过肩镜头或侧面构图，制造压迫感。'],
-                ['情绪转折', '让人物做出选择，画面要有明确动作和情绪变化。', '近景或特写，浅景深，强调眼神和手部动作。'],
-                ['结果揭示', '给出结局画面或留下悬念，形成记忆点。', '特写或拉远，画面保留关键道具和情绪余韵。'],
-                ['收束画面', '用一个安静但明确的画面结束故事。', '静态构图，留白，光线或环境声收尾。']
+        function buildShotTask(index, count) {
+            const tasks = [
+                ['建立场景', '交代故事发生地点、时间、氛围和主角处境。'],
+                ['人物登场', '突出主角外观、状态、标志物和当前情绪。'],
+                ['冲突出现', '呈现让故事发生变化的动作、信息、阻碍或关系变化。'],
+                ['情绪转折', '让人物做出选择，情绪从一种状态转向另一种状态。'],
+                ['结果揭示', '给出结局画面或悬念，让观众理解这一段故事的落点。'],
+                ['余韵收束', '用一个安静但明确的画面结束，留下记忆点。']
             ];
-            if (count === 3) return [presets[0], presets[2], presets[4]][index - 1];
-            if (count === 4) return [presets[0], presets[1], presets[3], presets[4]][index - 1];
-            if (count === 5) return presets.slice(0, 5)[index - 1];
-            return presets[index - 1];
+            if (count === 3) return [tasks[0], tasks[2], tasks[4]][index - 1];
+            if (count === 4) return [tasks[0], tasks[1], tasks[3], tasks[4]][index - 1];
+            if (count === 5) return tasks.slice(0, 5)[index - 1];
+            return tasks[index - 1];
         }
 
         function generatePrompt() {
@@ -278,66 +263,64 @@
             const subtitles = document.getElementById('subtitles').value;
             const shotCount = splitIntoShots(duration);
             const shotPlan = getShotPlan(shotCount, duration);
-
-            const voiceEnabled = voiceover === '需要配音';
-            const subtitleEnabled = subtitles === '需要字幕';
-            const tone = summary.includes('雨') || summary.includes('夜')
-                ? '潮湿、安静、带一点克制的情绪'
-                : '清晰、有节奏、情绪逐步推进';
-            const visualStyle = ratio.includes('竖屏')
-                ? '竖屏短视频构图，人物居中，背景信息简洁'
-                : '电影分镜构图，空间关系清楚，画面层次稳定';
-
-            const shotText = shotPlan.map((shot) => {
-                const [title, plot, camera] = buildShotDescription(shot.index, shotCount);
-                const voiceText = voiceEnabled
-                    ? `配音：${shot.index === 1 ? '故事从这里开始。' : shot.index === shotCount ? '有些答案，终于被说出口。' : '他们都在等对方先开口。'}`
-                    : '配音：无';
-                const subtitleText = subtitleEnabled
-                    ? `字幕：${shot.index === 1 ? '故事开始的那一刻' : shot.index === shotCount ? '结尾留给观众一秒安静' : '情绪正在发生变化'}`
-                    : '字幕：无';
-                const dialogue = shot.index === Math.ceil(shotCount / 2)
-                    ? '台词：可以安排一句推动关系变化的短对白，例如“你怎么会在这里？”'
-                    : '台词：无，主要依靠动作和表情表达。';
-
-                return [
-                    `镜头 ${String(shot.index).padStart(2, '0')}｜${shot.start}-${shot.end} 秒｜${title}`,
-                    `分段剧情描述：${plot} 本镜头需要从“${summary}”中截取一个明确瞬间，不表现连续动作，只表现一个可被画成单张图的关键画面。`,
-                    `人物设定：主角外观、服装、道具、年龄感、表情状态保持一致；如果有第二角色，二者站位和关系要清楚。`,
-                    `镜头语言：${camera} ${visualStyle}。画面重点放在人物动作和情绪变化上，背景只保留推动剧情的信息。`,
-                    dialogue,
-                    voiceText,
-                    `音效：环境底噪 + 关键动作声，例如脚步声、门铃声、雨声、风声、衣料摩擦声，根据剧情选择 1-3 个。`,
-                    subtitleText,
-                    `image-2 出图提示词：${title}，${summary}，${plot}，${camera}，${ratio}，${tone}，主体清晰，光线有方向，情绪明确，单张画面，不要文字水印，不要多格漫画。`
-                ].join('\n');
-            }).join('\n\n---\n\n');
+            const shotGuide = shotPlan.map((shot) => {
+                const [title, task] = buildShotTask(shot.index, shotCount);
+                return `镜头 ${String(shot.index).padStart(2, '0')}｜${shot.start}-${shot.end} 秒｜${title}：${task}`;
+            }).join('\n');
 
             outputEl.value = [
-                `《${summary.slice(0, 18)}${summary.length > 18 ? '...' : ''}》分镜脚本初稿`,
+                '你是一名短视频导演、分镜师和 image-2 提示词工程师。请严格根据我提供的输入，创作一份可直接用于出图和制作视频的剧情分镜脚本。',
                 '',
-                '【基础参数】',
+                '【我的输入】',
+                `剧情概要：${summary}`,
                 `时长：${duration} 秒`,
-                `画面比例：${ratio}`,
-                `配音：${voiceover}`,
-                `字幕：${subtitles}`,
-                `整体情绪：${tone}`,
+                `视频横竖屏比例：${ratio}`,
+                `是否需要配音：${voiceover}`,
+                `是否需要字幕：${subtitles}`,
                 '',
-                '【人物设定】',
-                `根据剧情概要提炼人物：${summary}`,
-                '请保持主要人物的年龄感、发型、服装、随身道具、表情气质在所有镜头中一致。',
-                '如果概要没有明确外貌，默认使用现实题材、自然服装、真实表情，不额外添加奇幻或科幻元素。',
+                '【创作规则】',
+                `1. 把剧情拆成 ${shotCount} 个镜头，总时长控制在 ${duration} 秒。`,
+                '2. 必须完全围绕剧情概要展开，不要另起新故事，不要添加无关人物、无关场景或无关道具。',
+                '3. 如果剧情概要没有写清人物外貌，请合理补足，但必须简洁、现实、稳定，并在所有镜头中保持一致。',
+                '4. 每个镜头只表现一个能被画成单张图的关键瞬间，不要把连续动作塞进同一张 image-2 提示词。',
+                `5. 所有画面都遵守视频比例：${ratio}。`,
+                voiceover === '需要配音'
+                    ? '6. 需要配音：每个镜头写一句短配音，语气自然、有情绪，不要解释画面。'
+                    : '6. 不需要配音：配音栏统一写“无”。',
+                subtitles === '需要字幕'
+                    ? '7. 需要字幕：每个镜头写一句 6-16 字短字幕，适合短视频画面展示。'
+                    : '7. 不需要字幕：字幕栏统一写“无”。',
+                '8. 台词必须符合人物处境，能不说就不说，不要写空泛鸡汤。',
+                '9. 音效要具体，写环境音和动作音，例如雨声、脚步声、门铃声、衣料摩擦声、呼吸声。',
+                '10. image-2 出图提示词必须包含：主体、动作、环境、景别、机位、构图、光线、色彩、情绪、画面比例、风格一致性。',
                 '',
-                '【分段剧情描述】',
-                `全片用 ${shotCount} 个镜头完成：开场交代处境，中段推进冲突，末尾给出情绪转折或结果。`,
+                '【建议镜头结构】',
+                shotGuide,
                 '',
-                '【分镜头提示词】',
-                shotText,
+                '【请按这个格式输出】',
+                '一、人物设定',
+                '- 主角：身份、年龄感、外貌、服装、标志物、表情气质',
+                '- 配角：身份、外貌、服装、与主角关系',
+                '- 场景设定：地点、时间、光线、色彩、氛围',
+                '- 统一风格：写实/电影感/动画感等，并说明如何保持一致',
                 '',
-                '【给 GPT / image-2 的使用方式】',
-                '把上面每个镜头的 image-2 出图提示词分别复制给 GPT，让 GPT 再润色成单张图片提示词。每次只生成一个镜头画面，确保角色与风格一致。'
+                '二、分镜脚本',
+                '镜头 01｜0-? 秒｜镜头标题',
+                '分段剧情描述：',
+                '画面内容：',
+                '镜头语言：景别、机位、构图、运动、光线、色彩、情绪',
+                '台词：',
+                '配音：',
+                '音效：',
+                '字幕：',
+                'image-2 出图提示词：',
+                '',
+                '请继续输出后续所有镜头，直到总时长结束。',
+                '',
+                '三、image-2 提示词汇总',
+                '最后把每个镜头的 image-2 出图提示词单独列出来，方便我逐条复制出图。'
             ].join('\n');
-            showStatus(`已生成 ${shotCount} 个镜头初稿`);
+            showStatus(`已生成 GPT 指令：${shotCount} 个镜头`);
         }
 
         async function copyOutput() {
@@ -375,7 +358,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'storyboard-image-2-prompt.txt';
+            link.download = 'storyboard-gpt-instruction.txt';
             link.click();
             URL.revokeObjectURL(url);
         }
