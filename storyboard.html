@@ -3,442 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>剧情分镜脚本创作</title>
+    <title>剧情分镜提示词生成器</title>
     <style>
         * { box-sizing: border-box; }
         body {
             margin: 0;
             min-height: 100vh;
-            background: #f4f1ea;
-            color: #24302f;
+            background: #f5f1e8;
+            color: #22312f;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
-        button, input, select, textarea {
+        button, textarea, select {
             font: inherit;
         }
         button {
             border: 0;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 700;
+            font-weight: 800;
         }
-        button:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-        textarea, input, select {
+        textarea, select {
             width: 100%;
-            border: 1px solid #c9c4ba;
+            border: 1px solid #c9c1b3;
             border-radius: 6px;
             background: #fffdf8;
-            color: #24302f;
-            padding: 10px 12px;
+            color: #22312f;
+            padding: 11px 12px;
             outline: none;
         }
-        textarea:focus, input:focus, select:focus {
-            border-color: #1d8a8a;
-            box-shadow: 0 0 0 3px rgba(29, 138, 138, 0.14);
+        textarea:focus, select:focus {
+            border-color: #1f8a8a;
+            box-shadow: 0 0 0 3px rgba(31, 138, 138, 0.14);
         }
         textarea {
+            min-height: 190px;
             resize: vertical;
-            min-height: 76px;
-            line-height: 1.55;
+            line-height: 1.6;
         }
         label {
             display: block;
-            margin-bottom: 7px;
+            margin-bottom: 8px;
+            color: #53615e;
             font-size: 13px;
-            font-weight: 800;
-            color: #52605e;
+            font-weight: 900;
         }
         .app {
             min-height: 100vh;
             display: grid;
-            grid-template-columns: 330px minmax(0, 1fr) 430px;
+            grid-template-columns: minmax(330px, 440px) minmax(0, 1fr);
         }
-        .sidebar, .export {
+        .input-panel {
+            padding: 24px;
             background: #fffaf0;
-            border-color: #ded7cb;
-            padding: 22px;
-            overflow: auto;
-            max-height: 100vh;
+            border-right: 1px solid #ded5c7;
         }
-        .sidebar {
-            border-right: 1px solid #ded7cb;
-        }
-        .export {
-            border-left: 1px solid #ded7cb;
-        }
-        .main {
-            padding: 22px;
-            overflow: auto;
-            max-height: 100vh;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 18px;
-        }
-        .brand {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+        .output-panel {
+            padding: 24px;
         }
         h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 25px;
             letter-spacing: 0;
         }
-        .meta {
-            color: #68736f;
-            font-size: 13px;
+        .subtitle {
+            margin: 6px 0 22px;
+            color: #66716e;
+            font-size: 14px;
         }
-        .section {
-            margin-bottom: 18px;
-        }
-        .section-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 15px;
-            font-weight: 900;
-            color: #24302f;
+        .field {
+            margin-bottom: 16px;
         }
         .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-        .field {
-            margin-bottom: 12px;
-        }
-        .wide {
-            grid-column: 1 / -1;
+            gap: 14px;
         }
         .actions {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+            margin-top: 20px;
         }
         .btn-primary {
-            background: #1d8a8a;
+            background: #1f8a8a;
             color: #fff;
-            padding: 11px 14px;
+            padding: 12px 16px;
         }
-        .btn-primary:hover { background: #167575; }
-        .btn-secondary {
-            background: #263534;
+        .btn-primary:hover { background: #176f6f; }
+        .btn-dark {
+            background: #22312f;
             color: #fff;
-            padding: 11px 14px;
+            padding: 12px 16px;
         }
-        .btn-secondary:hover { background: #152322; }
         .btn-soft {
-            background: #e8dfd0;
-            color: #273331;
-            padding: 9px 12px;
+            background: #e6daca;
+            color: #22312f;
+            padding: 12px 16px;
         }
-        .btn-soft:hover { background: #ddd1bf; }
-        .btn-danger {
-            background: #a83c3c;
-            color: #fff;
-            padding: 9px 12px;
-        }
-        .toolbar {
+        .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
+            gap: 16px;
+            margin-bottom: 16px;
         }
-        .shot-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .shot {
-            background: #fffdf8;
-            border: 1px solid #ded7cb;
+        .output {
+            width: 100%;
+            min-height: calc(100vh - 138px);
+            border: 1px solid #162422;
             border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-        }
-        .shot-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-        .shot-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 900;
-        }
-        .shot-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: #e94f37;
-            color: #fff;
-            font-weight: 900;
-        }
-        .shot-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .compact-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-        }
-        .prompt-box {
-            min-height: calc(100vh - 250px);
+            background: #162422;
+            color: #f3f7ef;
             font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
             font-size: 13px;
-            background: #172321;
-            color: #f1f7ef;
-            border-color: #172321;
+            line-height: 1.65;
+            padding: 16px;
         }
         .status {
             min-height: 20px;
-            margin-top: 10px;
-            color: #1d7777;
+            margin-top: 12px;
+            color: #197474;
             font-size: 13px;
             font-weight: 800;
         }
-        .empty {
-            border: 1px dashed #b9afa1;
-            border-radius: 8px;
-            padding: 28px;
-            text-align: center;
-            color: #68736f;
-            background: rgba(255,255,255,0.45);
-        }
-        @media (max-width: 1180px) {
-            .app {
-                grid-template-columns: 300px minmax(0, 1fr);
-            }
-            .export {
-                grid-column: 1 / -1;
-                max-height: none;
-                border-left: 0;
-                border-top: 1px solid #ded7cb;
-            }
-            .prompt-box {
-                min-height: 360px;
-            }
-        }
-        @media (max-width: 760px) {
+        @media (max-width: 860px) {
             .app {
                 display: block;
             }
-            .sidebar, .main, .export {
-                max-height: none;
-                border: 0;
-                padding: 18px;
+            .input-panel {
+                border-right: 0;
+                border-bottom: 1px solid #ded5c7;
             }
-            .main {
-                border-top: 1px solid #ded7cb;
-                border-bottom: 1px solid #ded7cb;
+            .grid {
+                grid-template-columns: 1fr;
             }
-            .topbar, .toolbar, .shot-head {
+            .topbar {
                 align-items: stretch;
                 flex-direction: column;
             }
-            .grid, .compact-grid {
-                grid-template-columns: 1fr;
-            }
-            .shot-actions, .actions {
-                width: 100%;
-            }
-            .shot-actions button, .actions button {
+            .actions button {
                 flex: 1;
+            }
+            .output {
+                min-height: 520px;
             }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <aside class="sidebar">
-            <div class="section">
-                <h1>剧情分镜脚本</h1>
-                <div class="meta">image-2 画面提示词工作台</div>
+        <section class="input-panel">
+            <h1>剧情分镜提示词生成器</h1>
+            <div class="subtitle">输入剧情概要，选择视频参数，生成可复制到 GPT 里继续给 image-2 出图的分镜脚本。</div>
+
+            <div class="field">
+                <label for="summary">剧情概要</label>
+                <textarea id="summary" placeholder="自由编辑。写清楚角色、场景、冲突、情绪、结尾。例如：一个外卖员在暴雨夜送最后一单，发现收货人是多年未见的母亲，两人在门口短暂和解。"></textarea>
             </div>
 
-            <div class="section">
-                <div class="section-title">项目设定</div>
+            <div class="grid">
                 <div class="field">
-                    <label for="projectTitle">标题</label>
-                    <input id="projectTitle" placeholder="雨夜便利店">
+                    <label for="duration">时长</label>
+                    <select id="duration"></select>
                 </div>
                 <div class="field">
-                    <label for="storyCore">剧情核心</label>
-                    <textarea id="storyCore" placeholder="一句话写清人物、冲突、转折和结尾"></textarea>
+                    <label for="ratio">视频横竖屏比例</label>
+                    <select id="ratio">
+                        <option value="9:16 竖屏短视频">9:16 竖屏短视频</option>
+                        <option value="16:9 横屏视频">16:9 横屏视频</option>
+                        <option value="1:1 方形视频">1:1 方形视频</option>
+                        <option value="4:5 信息流竖图">4:5 信息流竖图</option>
+                    </select>
                 </div>
                 <div class="field">
-                    <label for="visualStyle">视觉风格</label>
-                    <input id="visualStyle" placeholder="电影感，写实，柔和霓虹，浅景深">
-                </div>
-                <div class="grid">
-                    <div class="field">
-                        <label for="aspectRatio">画幅</label>
-                        <select id="aspectRatio">
-                            <option value="16:9">16:9 横屏</option>
-                            <option value="9:16">9:16 竖屏</option>
-                            <option value="1:1">1:1 方图</option>
-                            <option value="4:3">4:3</option>
-                            <option value="3:2">3:2</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="renderQuality">质感</label>
-                        <select id="renderQuality">
-                            <option value="高细节，主体清晰，构图稳定">高细节</option>
-                            <option value="干净线稿，色块明确，适合漫画分镜">漫画线稿</option>
-                            <option value="电影剧照质感，真实光影，环境细节丰富">电影剧照</option>
-                            <option value="动画电影质感，角色表情夸张但可信">动画电影</option>
-                        </select>
-                    </div>
+                    <label for="voiceover">是否需要配音</label>
+                    <select id="voiceover">
+                        <option value="需要配音">需要配音</option>
+                        <option value="不需要配音">不需要配音</option>
+                    </select>
                 </div>
                 <div class="field">
-                    <label for="characters">角色一致性</label>
-                    <textarea id="characters" placeholder="角色姓名、年龄、发型、服装、标志物、性格表情"></textarea>
-                </div>
-                <div class="field">
-                    <label for="worldRules">场景与禁忌</label>
-                    <textarea id="worldRules" placeholder="地点、时代、色彩、不要出现的元素"></textarea>
+                    <label for="subtitles">是否需要字幕</label>
+                    <select id="subtitles">
+                        <option value="需要字幕">需要字幕</option>
+                        <option value="不需要字幕">不需要字幕</option>
+                    </select>
                 </div>
             </div>
 
             <div class="actions">
-                <button class="btn-primary" id="saveBtn">保存</button>
-                <button class="btn-soft" id="loadBtn">读取</button>
-                <button class="btn-danger" id="clearBtn">清空</button>
+                <button class="btn-primary" id="generateBtn">生成分镜提示词</button>
+                <button class="btn-soft" id="sampleBtn">填入示例</button>
+                <button class="btn-dark" id="clearBtn">清空</button>
             </div>
             <div class="status" id="status"></div>
-        </aside>
+        </section>
 
-        <main class="main">
+        <section class="output-panel">
             <div class="topbar">
-                <div class="brand">
-                    <h1>分镜列表</h1>
-                    <div class="meta" id="shotCount">0 个镜头</div>
+                <div>
+                    <h1>输出脚本</h1>
+                    <div class="subtitle">包含人物设定、分段剧情、镜头语言、台词、音效、字幕和 image-2 出图提示词。</div>
                 </div>
                 <div class="actions">
-                    <button class="btn-primary" id="addShotBtn">新增镜头</button>
-                    <button class="btn-secondary" id="sampleBtn">示例</button>
-                    <button class="btn-soft" id="renumberBtn">重排编号</button>
+                    <button class="btn-primary" id="copyBtn">复制</button>
+                    <button class="btn-soft" id="downloadBtn">下载 TXT</button>
                 </div>
             </div>
-            <div class="shot-list" id="shotList"></div>
-        </main>
-
-        <aside class="export">
-            <div class="toolbar">
-                <div>
-                    <div class="section-title">GPT / image-2 脚本</div>
-                    <div class="meta">每个镜头可单独复制，也可复制全集</div>
-                </div>
-                <button class="btn-primary" id="copyBtn">复制全集</button>
-            </div>
-            <textarea class="prompt-box" id="exportText" spellcheck="false"></textarea>
-            <div class="actions" style="margin-top: 12px;">
-                <button class="btn-soft" id="refreshBtn">刷新脚本</button>
-                <button class="btn-secondary" id="downloadBtn">下载 TXT</button>
-            </div>
-        </aside>
+            <textarea class="output" id="output" spellcheck="false"></textarea>
+        </section>
     </div>
 
-    <template id="shotTemplate">
-        <section class="shot">
-            <div class="shot-head">
-                <div class="shot-title">
-                    <span class="shot-num"></span>
-                    <input class="shot-name" placeholder="镜头标题">
-                </div>
-                <div class="shot-actions">
-                    <button class="btn-soft duplicate-shot">复制</button>
-                    <button class="btn-soft copy-shot">复制提示词</button>
-                    <button class="btn-danger delete-shot">删除</button>
-                </div>
-            </div>
-            <div class="compact-grid">
-                <div class="field">
-                    <label>景别</label>
-                    <select class="shot-size">
-                        <option>远景</option>
-                        <option>全景</option>
-                        <option selected>中景</option>
-                        <option>近景</option>
-                        <option>特写</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>机位</label>
-                    <select class="camera">
-                        <option selected>平视</option>
-                        <option>俯拍</option>
-                        <option>仰拍</option>
-                        <option>侧面</option>
-                        <option>过肩</option>
-                        <option>主观视角</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>镜头运动</label>
-                    <select class="movement">
-                        <option selected>静态构图</option>
-                        <option>缓慢推进</option>
-                        <option>横移跟拍</option>
-                        <option>手持轻晃</option>
-                        <option>快速拉远</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>情绪</label>
-                    <input class="mood" placeholder="紧张、温柔、悬疑">
-                </div>
-                <div class="field wide">
-                    <label>画面内容</label>
-                    <textarea class="visual" placeholder="角色在什么地方做什么，画面里有哪些关键物件"></textarea>
-                </div>
-                <div class="field wide">
-                    <label>剧情动作</label>
-                    <textarea class="action" placeholder="这一镜头推进了什么信息或情绪"></textarea>
-                </div>
-                <div class="field wide">
-                    <label>台词 / 字幕</label>
-                    <textarea class="dialogue" placeholder="没有可留空"></textarea>
-                </div>
-                <div class="field wide">
-                    <label>本镜头补充</label>
-                    <textarea class="notes" placeholder="服装、光线、构图、道具、不能漏掉的细节"></textarea>
-                </div>
-            </div>
-        </section>
-    </template>
-
     <script>
-        const fields = [
-            'projectTitle',
-            'storyCore',
-            'visualStyle',
-            'aspectRatio',
-            'renderQuality',
-            'characters',
-            'worldRules'
-        ];
-        const shotList = document.getElementById('shotList');
-        const exportText = document.getElementById('exportText');
+        const durationEl = document.getElementById('duration');
+        const summaryEl = document.getElementById('summary');
+        const outputEl = document.getElementById('output');
         const statusEl = document.getElementById('status');
-        const storageKey = 'storyboardPromptWorkspace';
+
+        for (let seconds = 5; seconds <= 15; seconds++) {
+            const option = document.createElement('option');
+            option.value = String(seconds);
+            option.textContent = `${seconds} 秒`;
+            if (seconds === 10) option.selected = true;
+            durationEl.appendChild(option);
+        }
 
         function showStatus(text) {
             statusEl.textContent = text;
@@ -446,231 +234,147 @@
             showStatus.timer = setTimeout(() => statusEl.textContent = '', 1800);
         }
 
-        function value(id) {
-            return document.getElementById(id).value.trim();
+        function splitIntoShots(duration) {
+            if (duration <= 6) return 3;
+            if (duration <= 9) return 4;
+            if (duration <= 12) return 5;
+            return 6;
         }
 
-        function shotNodes() {
-            return Array.from(document.querySelectorAll('.shot'));
-        }
-
-        function getShotData(shot) {
-            return {
-                name: shot.querySelector('.shot-name').value.trim(),
-                size: shot.querySelector('.shot-size').value,
-                camera: shot.querySelector('.camera').value,
-                movement: shot.querySelector('.movement').value,
-                mood: shot.querySelector('.mood').value.trim(),
-                visual: shot.querySelector('.visual').value.trim(),
-                action: shot.querySelector('.action').value.trim(),
-                dialogue: shot.querySelector('.dialogue').value.trim(),
-                notes: shot.querySelector('.notes').value.trim()
-            };
-        }
-
-        function setShotData(shot, data) {
-            shot.querySelector('.shot-name').value = data.name || '';
-            shot.querySelector('.shot-size').value = data.size || '中景';
-            shot.querySelector('.camera').value = data.camera || '平视';
-            shot.querySelector('.movement').value = data.movement || '静态构图';
-            shot.querySelector('.mood').value = data.mood || '';
-            shot.querySelector('.visual').value = data.visual || '';
-            shot.querySelector('.action').value = data.action || '';
-            shot.querySelector('.dialogue').value = data.dialogue || '';
-            shot.querySelector('.notes').value = data.notes || '';
-        }
-
-        function renumber() {
-            const shots = shotNodes();
-            shots.forEach((shot, index) => {
-                shot.querySelector('.shot-num').textContent = String(index + 1).padStart(2, '0');
+        function getShotPlan(count, duration) {
+            const base = Math.floor(duration / count);
+            let rest = duration % count;
+            return Array.from({ length: count }, (_, index) => {
+                const length = base + (rest > 0 ? 1 : 0);
+                rest--;
+                const start = index === 0 ? 0 : Array.from({ length: index }).reduce((sum, __, i) => {
+                    const previousBase = Math.floor(duration / count);
+                    return sum + previousBase + (i < duration % count ? 1 : 0);
+                }, 0);
+                return { index: index + 1, start, end: start + length, length };
             });
-            document.getElementById('shotCount').textContent = `${shots.length} 个镜头`;
-            if (!shots.length) {
-                shotList.innerHTML = '<div class="empty">暂无镜头</div>';
-            }
-            refreshExport();
         }
 
-        function ensureListReady() {
-            const empty = shotList.querySelector('.empty');
-            if (empty) empty.remove();
-        }
-
-        function addShot(data = {}) {
-            ensureListReady();
-            const template = document.getElementById('shotTemplate');
-            const shot = template.content.firstElementChild.cloneNode(true);
-            setShotData(shot, data);
-            shot.querySelector('.delete-shot').addEventListener('click', () => {
-                shot.remove();
-                renumber();
-            });
-            shot.querySelector('.duplicate-shot').addEventListener('click', () => {
-                addShot(getShotData(shot));
-            });
-            shot.querySelector('.copy-shot').addEventListener('click', () => {
-                copyText(buildShotPrompt(getShotData(shot), shotNodes().indexOf(shot) + 1));
-            });
-            shot.querySelectorAll('input, textarea, select').forEach((input) => {
-                input.addEventListener('input', refreshExport);
-                input.addEventListener('change', refreshExport);
-            });
-            shotList.appendChild(shot);
-            renumber();
-        }
-
-        function buildShotPrompt(shot, index) {
-            const parts = [
-                `镜头 ${String(index).padStart(2, '0')}：${shot.name || '未命名镜头'}`,
-                `画幅：${value('aspectRatio')}`,
-                `景别：${shot.size}`,
-                `机位：${shot.camera}`,
-                `镜头运动：${shot.movement}`,
-                `情绪：${shot.mood || '自然'}`,
-                `画面内容：${shot.visual || '待补充'}`,
-                `剧情动作：${shot.action || '待补充'}`,
-                `台词/字幕：${shot.dialogue || '无'}`,
-                `补充细节：${shot.notes || '无'}`,
-                `统一风格：${value('visualStyle') || '清晰、有叙事感、画面稳定'}`,
-                `画面质感：${value('renderQuality')}`
+        function buildShotDescription(index, count) {
+            const presets = [
+                ['建立场景', '用环境、天气、空间关系交代故事发生地，让观众一眼知道人物处境。', '远景或全景，稳定构图，主体进入画面。'],
+                ['人物登场', '突出主角外貌、状态、标志物和当下情绪。', '中景到近景，轻微推进，视线落在人物表情。'],
+                ['冲突出现', '呈现让剧情发生变化的动作、信息或对手。', '过肩镜头或侧面构图，制造压迫感。'],
+                ['情绪转折', '让人物做出选择，画面要有明确动作和情绪变化。', '近景或特写，浅景深，强调眼神和手部动作。'],
+                ['结果揭示', '给出结局画面或留下悬念，形成记忆点。', '特写或拉远，画面保留关键道具和情绪余韵。'],
+                ['收束画面', '用一个安静但明确的画面结束故事。', '静态构图，留白，光线或环境声收尾。']
             ];
-            return parts.join('\n');
+            if (count === 3) return [presets[0], presets[2], presets[4]][index - 1];
+            if (count === 4) return [presets[0], presets[1], presets[3], presets[4]][index - 1];
+            if (count === 5) return presets.slice(0, 5)[index - 1];
+            return presets[index - 1];
         }
 
-        function buildExport() {
-            const shots = shotNodes().map(getShotData);
-            const blocks = shots.map((shot, index) => buildShotPrompt(shot, index + 1)).join('\n\n---\n\n');
-            return [
-                '请根据下面的剧情分镜，为每个镜头生成适合 image-2 出图的中文提示词。',
+        function generatePrompt() {
+            const summary = summaryEl.value.trim() || '请在这里补充剧情概要。';
+            const duration = Number(durationEl.value);
+            const ratio = document.getElementById('ratio').value;
+            const voiceover = document.getElementById('voiceover').value;
+            const subtitles = document.getElementById('subtitles').value;
+            const shotCount = splitIntoShots(duration);
+            const shotPlan = getShotPlan(shotCount, duration);
+            const voiceLine = voiceover === '需要配音'
+                ? '需要为每个镜头设计一句简短配音，语气贴合剧情，不要解释画面。'
+                : '不需要配音，台词栏只保留人物现场对白；没有对白则写“无”。';
+            const subtitleLine = subtitles === '需要字幕'
+                ? '需要为每个镜头设计短字幕，字幕应口语化、适合短视频展示。'
+                : '不需要字幕，字幕栏统一写“无”。';
+
+            const shots = shotPlan.map((shot) => {
+                const [title, plot, camera] = buildShotDescription(shot.index, shotCount);
+                return [
+                    `镜头 ${String(shot.index).padStart(2, '0')}｜${shot.start}-${shot.end} 秒｜${title}`,
+                    `分段剧情描述：围绕剧情概要“${summary}”，完成本段任务：${plot}`,
+                    `镜头语言：${camera}。画面比例：${ratio}。构图清晰，主体明确，动作可被一眼读懂。`,
+                    `人物设定：延续同一批角色的年龄、发型、服装、道具、表情和性格，不随镜头变化。`,
+                    `台词：根据剧情需要生成一句自然对白；如果此镜头不适合说话，写“无”。`,
+                    `配音：${voiceover === '需要配音' ? '生成一句 8-18 字的旁白或心理独白。' : '无。'}`,
+                    `音效：写出 1-3 个环境音或动作音，例如雨声、脚步声、门铃声、呼吸声。`,
+                    `字幕：${subtitles === '需要字幕' ? '生成一句 6-16 字短字幕。' : '无。'}`,
+                    `image-2 出图提示词：以这个镜头为单张画面生成提示词，包含主体、动作、环境、光线、情绪、景别、机位、构图、画面比例，不要把多个时间动作塞进同一张图。`
+                ].join('\n');
+            }).join('\n\n---\n\n');
+
+            outputEl.value = [
+                '请根据下面的信息，生成可用于 GPT 继续整理并调用 image-2 出图的剧情分镜脚本。',
                 '',
-                `项目标题：${value('projectTitle') || '未命名项目'}`,
-                `剧情核心：${value('storyCore') || '待补充'}`,
-                `角色一致性：${value('characters') || '待补充'}`,
-                `场景与禁忌：${value('worldRules') || '无'}`,
+                '【基础信息】',
+                `剧情概要：${summary}`,
+                `视频时长：${duration} 秒`,
+                `视频比例：${ratio}`,
+                `配音需求：${voiceover}`,
+                `字幕需求：${subtitles}`,
                 '',
-                '输出要求：',
-                '1. 每个镜头单独输出一条 image-2 提示词。',
-                '2. 保持角色外观、服装、色彩和世界观一致。',
-                '3. 每条提示词包含主体、动作、环境、构图、光线、情绪、画幅。',
-                '4. 不要添加分镜中没有出现的新角色或新道具。',
+                '【总体输出要求】',
+                '1. 先提炼人物设定，包括主角、配角、服装、道具、表情状态、色彩关键词。',
+                '2. 再按镜头输出分段剧情描述、镜头语言、台词、配音、音效、字幕。',
+                '3. 每个镜头都要给出一条适合 image-2 的单图提示词。',
+                '4. 保持人物、服装、场景、光线、画风一致。',
+                '5. 不要添加剧情概要之外的新主线，不要让单张图片承担连续动作。',
+                `6. ${voiceLine}`,
+                `7. ${subtitleLine}`,
                 '',
-                '分镜：',
-                blocks || '暂无镜头'
+                '【人物设定】',
+                '请从剧情概要中自动提炼人物。如果概要没有写清楚，请补足合理但简洁的人物外观设定，并在所有镜头中保持一致。',
+                '',
+                '【分镜脚本】',
+                shots
             ].join('\n');
+            showStatus(`已生成 ${shotCount} 个镜头`);
         }
 
-        function refreshExport() {
-            exportText.value = buildExport();
-        }
-
-        function collectData() {
-            const data = { settings: {}, shots: shotNodes().map(getShotData) };
-            fields.forEach((id) => data.settings[id] = document.getElementById(id).value);
-            return data;
-        }
-
-        function applyData(data) {
-            fields.forEach((id) => {
-                document.getElementById(id).value = data.settings?.[id] || '';
-            });
-            shotList.innerHTML = '';
-            (data.shots || []).forEach(addShot);
-            renumber();
-        }
-
-        async function copyText(text) {
+        async function copyOutput() {
             try {
-                await navigator.clipboard.writeText(text);
+                await navigator.clipboard.writeText(outputEl.value);
                 showStatus('已复制');
             } catch (error) {
-                exportText.value = text;
-                exportText.select();
+                outputEl.select();
                 document.execCommand('copy');
                 showStatus('已复制');
             }
         }
 
         function loadSample() {
-            applyData({
-                settings: {
-                    projectTitle: '雨夜便利店',
-                    storyCore: '离家出走的女孩在雨夜便利店遇见沉默的店员，发现对方一直替她保留一盏灯。',
-                    visualStyle: '电影感写实，雨夜霓虹，暖冷对比，浅景深，细腻表情',
-                    aspectRatio: '16:9',
-                    renderQuality: '电影剧照质感，真实光影，环境细节丰富',
-                    characters: '女孩：16岁，短发，湿透的深蓝校服，背旧帆布包，眼神倔强。店员：28岁，白衬衫黑围裙，神情温和克制。',
-                    worldRules: '现代城市夜晚，小型便利店，玻璃窗有雨痕。不要出现夸张科幻元素。'
-                },
-                shots: [
-                    {
-                        name: '雨夜抵达',
-                        size: '远景',
-                        camera: '平视',
-                        movement: '静态构图',
-                        mood: '孤独、潮湿',
-                        visual: '女孩站在便利店门口，雨水从校服袖口滴落，玻璃门反射街边霓虹。',
-                        action: '她犹豫几秒后推门进入。',
-                        dialogue: '',
-                        notes: '画面左侧保留街灯，便利店内部是暖黄色灯光。'
-                    },
-                    {
-                        name: '热牛奶',
-                        size: '近景',
-                        camera: '过肩',
-                        movement: '缓慢推进',
-                        mood: '克制的温柔',
-                        visual: '店员把一盒热牛奶推到收银台边，女孩低头看着牛奶，手指微微发抖。',
-                        action: '两人没有直接对视，空气安静。',
-                        dialogue: '店员：先暖一下手。',
-                        notes: '焦点在牛奶和女孩湿润的手指，背景货架轻微虚化。'
-                    }
-                ]
-            });
-            showStatus('已载入示例');
+            summaryEl.value = '一个年轻女孩在深夜便利店躲雨，偶遇多年未联系的哥哥。两人一开始尴尬沉默，后来因为一盒热牛奶想起童年，关系慢慢缓和，最后哥哥把伞递给她，自己走进雨里。';
+            durationEl.value = '12';
+            document.getElementById('ratio').value = '9:16 竖屏短视频';
+            document.getElementById('voiceover').value = '需要配音';
+            document.getElementById('subtitles').value = '需要字幕';
+            generatePrompt();
         }
 
-        document.getElementById('addShotBtn').addEventListener('click', () => addShot());
-        document.getElementById('renumberBtn').addEventListener('click', renumber);
-        document.getElementById('sampleBtn').addEventListener('click', loadSample);
-        document.getElementById('refreshBtn').addEventListener('click', refreshExport);
-        document.getElementById('copyBtn').addEventListener('click', () => copyText(exportText.value));
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            localStorage.setItem(storageKey, JSON.stringify(collectData()));
-            showStatus('已保存');
-        });
-        document.getElementById('loadBtn').addEventListener('click', () => {
-            const data = JSON.parse(localStorage.getItem(storageKey) || 'null');
-            if (data) {
-                applyData(data);
-                showStatus('已读取');
-            } else {
-                showStatus('没有保存内容');
-            }
-        });
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            fields.forEach((id) => document.getElementById(id).value = '');
-            shotList.innerHTML = '';
-            renumber();
+        function clearAll() {
+            summaryEl.value = '';
+            durationEl.value = '10';
+            document.getElementById('ratio').value = '9:16 竖屏短视频';
+            document.getElementById('voiceover').value = '需要配音';
+            document.getElementById('subtitles').value = '需要字幕';
+            outputEl.value = '';
             showStatus('已清空');
-        });
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const blob = new Blob([exportText.value], { type: 'text/plain;charset=utf-8' });
+        }
+
+        function downloadOutput() {
+            const blob = new Blob([outputEl.value], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${value('projectTitle') || 'storyboard'}-image-2-prompts.txt`;
+            link.download = 'storyboard-image-2-prompt.txt';
             link.click();
             URL.revokeObjectURL(url);
-        });
-        fields.forEach((id) => {
-            const el = document.getElementById(id);
-            el.addEventListener('input', refreshExport);
-            el.addEventListener('change', refreshExport);
-        });
+        }
 
-        addShot();
-        refreshExport();
+        document.getElementById('generateBtn').addEventListener('click', generatePrompt);
+        document.getElementById('sampleBtn').addEventListener('click', loadSample);
+        document.getElementById('clearBtn').addEventListener('click', clearAll);
+        document.getElementById('copyBtn').addEventListener('click', copyOutput);
+        document.getElementById('downloadBtn').addEventListener('click', downloadOutput);
+
+        generatePrompt();
     </script>
 </body>
 </html>
