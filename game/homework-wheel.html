@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
             align-items: center;
             font-family: system-ui, sans-serif;
         }
-        .container { text-align: center; }
+        .container { text-align: center; padding: 32px 20px; }
         .title {
             color: #c9a96e;
             font-size: 28px;
@@ -39,8 +39,6 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 0;
-            height: 0;
             border-left: 18px solid transparent;
             border-right: 18px solid transparent;
             border-top: 36px solid #c9a96e;
@@ -52,8 +50,6 @@
             position: absolute;
             top: -36px;
             left: -9px;
-            width: 0;
-            height: 0;
             border-left: 9px solid transparent;
             border-right: 9px solid transparent;
             border-top: 18px solid #e8d4b8;
@@ -81,24 +77,33 @@
         }
         .center-btn:hover { transform: translate(-50%, -50%) scale(1.05); }
         .center-btn:active { transform: translate(-50%, -50%) scale(0.95); }
-        .center-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .center-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: translate(-50%, -50%); }
+        .result {
+            min-height: 36px;
+            margin-top: 28px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="title">现在我要干什么？</div>
+        <div class="title">现在先写什么？</div>
         <div class="wheel-wrapper">
             <div class="pointer"></div>
             <canvas id="wheel" width="320" height="320"></canvas>
             <button class="center-btn" id="spinBtn" onclick="spin()">转</button>
         </div>
+        <div class="result" id="result"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
-        const cx = 160, cy = 160, r = 150;
-
+        const cx = 160;
+        const cy = 160;
+        const r = 150;
         const segments = [
             { name: '写语文作业', angle: 75, color: '#c4b8a8' },
             { name: '写数学作业', angle: 75, color: '#9db4c0' },
@@ -109,27 +114,23 @@
         ];
 
         let startAngle = -90;
-        segments.forEach(seg => {
+        segments.forEach((seg) => {
             seg.startAngle = startAngle * Math.PI / 180;
             seg.endAngle = (startAngle + seg.angle) * Math.PI / 180;
             startAngle += seg.angle;
         });
 
-        function drawWheel() {
+        let currentRotation = 0;
+        let spinning = false;
+
+        function drawWheel(rotation = 0) {
             ctx.clearRect(0, 0, 320, 320);
-            ctx.strokeStyle = '#8b5e3c';
-            ctx.lineWidth = 14;
-            ctx.beginPath();
-            ctx.arc(cx, cy, r + 3, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation * Math.PI / 180);
+            ctx.translate(-cx, -cy);
 
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = '#c9a96e';
-            ctx.beginPath();
-            ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
-            ctx.stroke();
-
-            segments.forEach(seg => {
+            segments.forEach((seg) => {
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.arc(cx, cy, r, seg.startAngle, seg.endAngle);
@@ -146,7 +147,7 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            segments.forEach(seg => {
+            segments.forEach((seg) => {
                 const midAngle = (seg.startAngle + seg.endAngle) / 2;
                 const textR = r * 0.65;
                 const tx = cx + Math.cos(midAngle) * textR;
@@ -157,73 +158,61 @@
                 ctx.fillText(seg.name, 0, 0);
                 ctx.restore();
             });
+            ctx.restore();
+
+            ctx.strokeStyle = '#8b5e3c';
+            ctx.lineWidth = 14;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#c9a96e';
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+            ctx.stroke();
         }
 
-        let currentRotation = 0;
-        let spinning = false;
+        function getResult(rotation) {
+            const normalizedRotation = ((rotation % 360) + 360) % 360;
+            const pointerAngle = (270 - normalizedRotation + 360) % 360;
+            return segments.find((seg) => {
+                const start = ((seg.startAngle * 180 / Math.PI) + 360) % 360;
+                const end = ((seg.endAngle * 180 / Math.PI) + 360) % 360;
+                return start < end
+                    ? pointerAngle >= start && pointerAngle < end
+                    : pointerAngle >= start || pointerAngle < end;
+            }) || segments[0];
+        }
 
         function spin() {
             if (spinning) return;
             spinning = true;
             document.getElementById('spinBtn').disabled = true;
+            document.getElementById('result').textContent = '';
 
-            const randomAngle = Math.floor(Math.random() * 360) + 1440;
-            currentRotation += randomAngle;
-
-            const targetRotation = currentRotation * Math.PI / 180;
+            const startRotation = currentRotation;
+            const spinAmount = Math.floor(Math.random() * 360) + 1440;
+            const targetRotation = currentRotation + spinAmount;
             const startTime = Date.now();
-            const duration = 2000;
+            const duration = 2200;
 
             function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
+                const progress = Math.min((Date.now() - startTime) / duration, 1);
                 const eased = 1 - Math.pow(1 - progress, 3);
-                const currentAngle = currentRotation * eased;
-
-                ctx.clearRect(0, 0, 320, 320);
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(currentAngle);
-                ctx.translate(-cx, -cy);
-
-                segments.forEach(seg => {
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, r, seg.startAngle, seg.endAngle);
-                    ctx.closePath();
-                    ctx.fillStyle = seg.color;
-                    ctx.fill();
-                    ctx.strokeStyle = '#8b5e3c';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                });
-
-                ctx.font = 'bold 16px system-ui';
-                ctx.fillStyle = '#5a5a5a';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                segments.forEach(seg => {
-                    const midAngle = (seg.startAngle + seg.endAngle) / 2;
-                    const textR = r * 0.65;
-                    const tx = cx + Math.cos(midAngle) * textR;
-                    const ty = cy + Math.sin(midAngle) * textR;
-                    ctx.save();
-                    ctx.translate(tx, ty);
-                    ctx.rotate(midAngle + Math.PI / 2);
-                    ctx.fillText(seg.name, 0, 0);
-                    ctx.restore();
-                });
-
-                ctx.restore();
+                currentRotation = startRotation + spinAmount * eased;
+                drawWheel(currentRotation);
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
+                    currentRotation = targetRotation;
                     spinning = false;
                     document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('result').textContent = `▶ ${getResult(currentRotation).name}`;
                 }
             }
+
             animate();
         }
 

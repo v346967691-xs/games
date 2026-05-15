@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
             align-items: center;
             font-family: system-ui, sans-serif;
         }
-        .container { text-align: center; }
+        .container { text-align: center; padding: 32px 20px; }
         .title {
             color: #c9a96e;
             font-size: 36px;
@@ -39,19 +39,15 @@
             text-decoration: none;
             color: #fff;
             transition: all 0.3s;
-            min-width: 360px;
+            width: min(360px, calc(100vw - 40px));
         }
         .game-card:hover {
             background: rgba(255,255,255,0.2);
             transform: scale(1.05);
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
-        .game-icon {
-            font-size: 40px;
-        }
-        .game-info {
-            text-align: left;
-        }
+        .game-icon { font-size: 40px; flex: 0 0 auto; }
+        .game-info { text-align: left; }
         .game-name {
             font-size: 22px;
             font-weight: bold;
@@ -59,7 +55,7 @@
         }
         .game-desc {
             font-size: 14px;
-            color: #888;
+            color: #b8bdc8;
         }
     </style>
 </head>
@@ -99,7 +95,7 @@
                 <div class="game-icon">🧠</div>
                 <div class="game-info">
                     <div class="game-name">记忆翻牌</div>
-                    <div class="game-desc">翻牌找相同挑战记忆力</div>
+                    <div class="game-desc">翻牌找相同，挑战记忆力</div>
                 </div>
             </a>
         </div>
