@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>游戏合集</title>
+    <title>工具与游戏合集</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,19 +14,22 @@
             align-items: center;
             font-family: system-ui, sans-serif;
         }
-        .container { text-align: center; padding: 32px 20px; }
+        .container {
+            text-align: center;
+            padding: 32px 20px;
+        }
         .title {
             color: #c9a96e;
             font-size: 36px;
             font-weight: bold;
-            margin-bottom: 60px;
+            margin-bottom: 46px;
             text-shadow: 0 2px 15px rgba(0,0,0,0.5);
-            letter-spacing: 6px;
+            letter-spacing: 4px;
         }
         .games {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px;
             align-items: center;
         }
         .game-card {
@@ -35,19 +38,24 @@
             gap: 20px;
             padding: 20px 40px;
             background: rgba(255,255,255,0.1);
-            border-radius: 16px;
+            border-radius: 8px;
             text-decoration: none;
             color: #fff;
             transition: all 0.3s;
-            width: min(360px, calc(100vw - 40px));
+            width: min(420px, calc(100vw - 40px));
         }
         .game-card:hover {
             background: rgba(255,255,255,0.2);
-            transform: scale(1.05);
+            transform: scale(1.04);
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
-        .game-icon { font-size: 40px; flex: 0 0 auto; }
-        .game-info { text-align: left; }
+        .game-icon {
+            font-size: 40px;
+            flex: 0 0 auto;
+        }
+        .game-info {
+            text-align: left;
+        }
         .game-name {
             font-size: 22px;
             font-weight: bold;
@@ -56,13 +64,21 @@
         .game-desc {
             font-size: 14px;
             color: #b8bdc8;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="title">游戏合集</div>
+        <div class="title">工具与游戏合集</div>
         <div class="games">
+            <a href="storyboard.html" class="game-card">
+                <div class="game-icon">🎬</div>
+                <div class="game-info">
+                    <div class="game-name">剧情分镜脚本</div>
+                    <div class="game-desc">整理 image-2 出图用的镜头提示词</div>
+                </div>
+            </a>
             <a href="game/blackjack.html" class="game-card">
                 <div class="game-icon">🃏</div>
                 <div class="game-info">
